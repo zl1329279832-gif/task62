@@ -38,5 +38,10 @@ public interface WuzixinxiService extends IService<WuzixinxiEntity> {
     List<Map<String, Object>> selectTimeStatValue(Map<String, Object> params,Wrapper<WuzixinxiEntity> wrapper);
 
     List<Map<String, Object>> selectGroup(Map<String, Object> params,Wrapper<WuzixinxiEntity> wrapper);
+
+    /**
+     * 按物资分类聚合低库存预警
+     */
+    List<Map<String, Object>> selectLowStockAlert(int threshold);
 }
 

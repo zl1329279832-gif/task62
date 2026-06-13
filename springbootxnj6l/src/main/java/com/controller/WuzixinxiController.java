@@ -29,6 +29,7 @@ import com.entity.WuzixinxiEntity;
 import com.entity.view.WuzixinxiView;
 
 import com.service.WuzixinxiService;
+import com.service.KucunService;
 import com.service.TokenService;
 import com.utils.PageUtils;
 import com.utils.R;
@@ -49,6 +50,9 @@ import java.io.IOException;
 public class WuzixinxiController {
     @Autowired
     private WuzixinxiService wuzixinxiService;
+
+    @Autowired
+    private KucunService kucunService;
 
 
     
@@ -273,6 +277,19 @@ public class WuzixinxiController {
                 }
             }
         }
+        return R.ok().put("data", result);
+    }
+
+    /**
+     * 低库存预警查询
+     * 按物资分类聚合，返回库存量低于阈值的分类汇总
+     *
+     * @param threshold 库存阈值（默认10）
+     * @return 各分类下的低库存物资汇总
+     */
+    @RequestMapping("/lowStockAlert")
+    public R lowStockAlert(@RequestParam(value = "threshold", defaultValue = "10") int threshold) {
+        List<Map<String, Object>> result = kucunService.lowStockAlert(threshold);
         return R.ok().put("data", result);
     }
 

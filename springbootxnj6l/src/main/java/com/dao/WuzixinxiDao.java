@@ -37,4 +37,9 @@ public interface WuzixinxiDao extends BaseMapper<WuzixinxiEntity> {
     List<Map<String, Object>> selectTimeStatValue(@Param("params") Map<String, Object> params,@Param("ew") Wrapper<WuzixinxiEntity> wrapper);
 
     List<Map<String, Object>> selectGroup(@Param("params") Map<String, Object> params,@Param("ew") Wrapper<WuzixinxiEntity> wrapper);
+
+    /**
+     * 按物资分类聚合低库存预警
+     */
+    List<Map<String, Object>> selectLowStockAlert(@Param("threshold") int threshold);
 }

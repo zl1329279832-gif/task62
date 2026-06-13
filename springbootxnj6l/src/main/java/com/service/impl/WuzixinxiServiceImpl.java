@@ -74,4 +74,9 @@ public class WuzixinxiServiceImpl extends ServiceImpl<WuzixinxiDao, WuzixinxiEnt
         return baseMapper.selectGroup(params, wrapper);
     }
 
+    @Override
+    public List<Map<String, Object>> selectLowStockAlert(int threshold) {
+        return baseMapper.selectLowStockAlert(threshold);
+    }
+
 }

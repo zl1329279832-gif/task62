@@ -68,4 +68,16 @@
         <where> 1=1 ${ew.sqlSegment}</where>
         group by ${params.column}
     </select>
+
+    <!-- 按物资分类聚合低库存预警 -->
+    <select id="selectLowStockAlert" resultType="map">
+        SELECT
+            wuzifenlei,
+            COUNT(*) AS lowStockCount,
+            GROUP_CONCAT(wuzimingcheng SEPARATOR ',') AS wuziNames,
+            MIN(wuzishuliang) AS minQuantity
+        FROM wuzixinxi
+        WHERE wuzishuliang &lt;= #{threshold}
+        GROUP BY wuzifenlei
+    </select>
 </mapper>

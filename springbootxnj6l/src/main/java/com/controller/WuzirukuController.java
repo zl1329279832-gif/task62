@@ -29,6 +29,7 @@ import com.entity.WuzirukuEntity;
 import com.entity.view.WuzirukuView;
 
 import com.service.WuzirukuService;
+import com.service.KucunService;
 import com.service.TokenService;
 import com.utils.PageUtils;
 import com.utils.R;
@@ -49,6 +50,9 @@ import java.io.IOException;
 public class WuzirukuController {
     @Autowired
     private WuzirukuService wuzirukuService;
+
+    @Autowired
+    private KucunService kucunService;
 
 
     
@@ -125,21 +129,27 @@ public class WuzirukuController {
      * 后端保存
      */
     @RequestMapping("/save")
+    @Transactional
     public R save(@RequestBody WuzirukuEntity wuziruku, HttpServletRequest request){
     	wuziruku.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
     	//ValidatorUtils.validateEntity(wuziruku);
         wuzirukuService.insert(wuziruku);
+        // 入库联动：增加库存台账
+        kucunService.increaseStock(wuziruku.getWuzimingcheng(), wuziruku.getWuzishuliang());
         return R.ok();
     }
-    
+
     /**
      * 前端保存
      */
     @RequestMapping("/add")
+    @Transactional
     public R add(@RequestBody WuzirukuEntity wuziruku, HttpServletRequest request){
     	wuziruku.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
     	//ValidatorUtils.validateEntity(wuziruku);
         wuzirukuService.insert(wuziruku);
+        // 入库联动：增加库存台账
+        kucunService.increaseStock(wuziruku.getWuzimingcheng(), wuziruku.getWuzishuliang());
         return R.ok();
     }
 

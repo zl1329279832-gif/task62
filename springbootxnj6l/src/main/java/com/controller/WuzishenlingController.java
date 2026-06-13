@@ -29,6 +29,7 @@ import com.entity.WuzishenlingEntity;
 import com.entity.view.WuzishenlingView;
 
 import com.service.WuzishenlingService;
+import com.service.KucunService;
 import com.service.TokenService;
 import com.utils.PageUtils;
 import com.utils.R;
@@ -49,6 +50,9 @@ import java.io.IOException;
 public class WuzishenlingController {
     @Autowired
     private WuzishenlingService wuzishenlingService;
+
+    @Autowired
+    private KucunService kucunService;
 
 
     
@@ -137,21 +141,25 @@ public class WuzishenlingController {
      * 后端保存
      */
     @RequestMapping("/save")
+    @Transactional
     public R save(@RequestBody WuzishenlingEntity wuzishenling, HttpServletRequest request){
     	wuzishenling.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
     	//ValidatorUtils.validateEntity(wuzishenling);
-        wuzishenlingService.insert(wuzishenling);
+        // 通过库存服务创建申领单，自动设置"待审核"状态 + 快照当前库存
+        kucunService.createRequisition(wuzishenling);
         return R.ok();
     }
-    
+
     /**
      * 前端保存
      */
     @RequestMapping("/add")
+    @Transactional
     public R add(@RequestBody WuzishenlingEntity wuzishenling, HttpServletRequest request){
     	wuzishenling.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
     	//ValidatorUtils.validateEntity(wuzishenling);
-        wuzishenlingService.insert(wuzishenling);
+        // 通过库存服务创建申领单，自动设置"待审核"状态 + 快照当前库存
+        kucunService.createRequisition(wuzishenling);
         return R.ok();
     }
 
@@ -175,7 +183,39 @@ public class WuzishenlingController {
         wuzishenlingService.deleteBatchIds(Arrays.asList(ids));
         return R.ok();
     }
-    
+
+    /**
+     * 审批通过申领单
+     * 原子扣减库存 + 自动生成出库记录 + 更新状态为"已出库"
+     */
+    @RequestMapping("/approve")
+    public R approve(@RequestBody Map<String, Object> params){
+        try {
+            Long id = Long.valueOf(params.get("id").toString());
+            String shhf = params.get("shhf") != null ? params.get("shhf").toString() : "";
+            kucunService.approveRequisition(id, shhf);
+            return R.ok("审批通过，已自动出库");
+        } catch (RuntimeException e) {
+            return R.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 审批拒绝申领单
+     * 更新状态为"拒绝"，不扣减库存
+     */
+    @RequestMapping("/reject")
+    public R reject(@RequestBody Map<String, Object> params){
+        try {
+            Long id = Long.valueOf(params.get("id").toString());
+            String shhf = params.get("shhf") != null ? params.get("shhf").toString() : "";
+            kucunService.rejectRequisition(id, shhf);
+            return R.ok("已拒绝");
+        } catch (RuntimeException e) {
+            return R.error(e.getMessage());
+        }
+    }
+
     /**
      * 提醒接口
      */
