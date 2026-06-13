@@ -1,0 +1,50 @@
+# ============================================================
+# CI: 双数据库 Profile 编译 + H2 冒烟测试
+# ============================================================
+name: CI — dual-db build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        db-profile: [ mysql, sqlserver ]
+    name: build (${{ matrix.db-profile }})
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+          cache: maven
+
+      # ---- 编译 + 冒烟测试 ----
+      # surefire 已配置 -Dspring.profiles.active=test，使用 H2 内存库
+      # KucunServiceTest 需要真实数据库，已在 surefire 中 exclude
+      - name: Build & smoke-test (-P${{ matrix.db-profile }})
+        working-directory: springbootxnj6l
+        run: mvn clean verify -P${{ matrix.db-profile }} -B
+
+      # ---- 验证产物名 ----
+      - name: Verify artifact name
+        working-directory: springbootxnj6l
+        run: |
+          ls -la target/springbootxnj6l.jar
+          echo "Artifact OK: springbootxnj6l.jar (profile=${{ matrix.db-profile }})"
+
+      # ---- 上传构建产物（可选） ----
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: springbootxnj6l-${{ matrix.db-profile }}
+          path: springbootxnj6l/target/springbootxnj6l.jar
+          retention-days: 7

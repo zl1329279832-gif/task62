@@ -1,0 +1,20 @@
+# ============================================================
+# H2 内存数据库 — CI 冒烟测试专用
+# 通过 surefire 插件自动激活: -Dspring.profiles.active=test
+#
+# 限制:
+#   - H2 MODE=MySQL 仅模拟部分 MySQL 语法，不覆盖 SQL Server 方言
+#   - MyBatis XML 中若含数据库专有函数（如 GETDATE()）将失败
+#   - 仅验证 Spring 上下文能正常启动，不替代真实数据库集成测试
+# ============================================================
+
+spring:
+    datasource:
+        driverClassName: org.h2.Driver
+        url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE
+        username: sa
+        password:
+
+mybatis-plus:
+  global-config:
+    field-strategy: 1

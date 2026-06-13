@@ -36,9 +36,12 @@
 		    <artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 		
+		<!-- MySQL / SQL Server 驱动由 Maven profile 控制，见文件底部 <profiles> -->
+		<!-- H2 用于 CI 冒烟测试 -->
 		<dependency>
-		    <groupId>mysql</groupId>
-		    <artifactId>mysql-connector-java</artifactId>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		    <scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.shiro</groupId>
@@ -93,19 +96,7 @@
 			<artifactId>fastjson</artifactId>
 			<version>${fastjson.version}</version>
 		</dependency>
-		<dependency>
-		    <groupId>com.microsoft.sqlserver</groupId>
-		    <artifactId>sqljdbc4</artifactId>
-		    <scope>4.0</scope>
-		    <version>4.0</version>
-		</dependency>
-		
-		<dependency>
-		    <groupId>com.microsoft.sqlserver</groupId>
-		    <artifactId>mssql-jdbc</artifactId>
-		    <version>6.2.0.jre8</version>
-		    <scope>runtime</scope>
-		</dependency>
+		<!-- SQL Server 驱动由 sqlserver profile 引入 -->
 		<!-- 百度人工智能 -->
 		<dependency>
     		<groupId>com.baidu.aip</groupId>
@@ -140,12 +131,62 @@
 	</dependencies>
 
 	<build>
+		<finalName>springbootxnj6l</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<!-- 冒烟测试：用 H2 替代真实数据库 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Dspring.profiles.active=test</argLine>
+					<!-- KucunServiceTest 需要真实数据库，CI 中排除 -->
+					<excludes>
+						<exclude>**/KucunServiceTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
+
+	<!-- ==================== 数据库 Profile ==================== -->
+	<profiles>
+		<!-- MySQL (默认) -->
+		<profile>
+			<id>mysql</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<activatedProfile>mysql</activatedProfile>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<!-- SQL Server -->
+		<profile>
+			<id>sqlserver</id>
+			<properties>
+				<activatedProfile>sqlserver</activatedProfile>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>com.microsoft.sqlserver</groupId>
+					<artifactId>mssql-jdbc</artifactId>
+					<version>6.2.0.jre8</version>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
 
 </project>

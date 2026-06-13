@@ -1,4 +1,9 @@
-# Tomcat
+# ============================================================
+# 公共配置 — 与数据库无关的部分
+# 数据源、field-strategy 等由 application-{profile}.yml 覆盖
+# 构建时通过 Maven profile 注入: mvn package -Pmysql / -Psqlserver
+# ============================================================
+
 server:
     tomcat:
         uri-encoding: UTF-8
@@ -7,17 +12,8 @@ server:
         context-path: /springbootxnj6l
 
 spring:
-    datasource:
-        driverClassName: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/springbootxnj6l?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8
-        username: root
-        password: 123456
-
-#        driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-#        url: jdbc:sqlserver://127.0.0.1:1433;DatabaseName=springbootxnj6l
-#        username: sa
-#        password: 123456
-
+    profiles:
+        active: @activatedProfile@
     servlet:
       multipart:
         max-file-size: 300MB
@@ -33,8 +29,7 @@ mybatis-plus:
   global-config:
     #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
     id-type: 1
-    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
-    field-strategy: 1
+    #字段策略由 profile 文件单独指定，避免手工改错
     #驼峰下划线转换
     db-column-underline: true
     #刷新mapper 调试神器
@@ -49,4 +44,4 @@ mybatis-plus:
     cache-enabled: false
     call-setters-on-nulls: true
     #springboot 项目mybatis plus 设置 jdbcTypeForNull (oracle数据库需配置JdbcType.NULL, 默认是Other)
-    jdbc-type-for-null: 'null' 
+    jdbc-type-for-null: 'null'
