@@ -1,0 +1,132 @@
+# ============================================================
+# 应急物资管理系统 - CI 流水线
+# 两个 profile 各跑一遍编译 + 冒烟测试
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+
+  # ==================== MySQL Profile ====================
+  build-mysql:
+    name: Build & Smoke Test (MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root123456
+          MYSQL_DATABASE: springbootxnj6l
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Compile (mysql profile)
+        run: mvn clean compile -P mysql -B -f springbootxnj6l/pom.xml
+
+      - name: Smoke test - contextLoads (mysql profile)
+        run: >-
+          mvn test -P mysql -B
+          -Dtest=SpringbootSchemaApplicationTests
+          -DDB_URL="jdbc:mysql://127.0.0.1:3306/springbootxnj6l?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8"
+          -DDB_USERNAME=root
+          -DDB_PASSWORD=root123456
+          -f springbootxnj6l/pom.xml
+
+      - name: Package jar (mysql profile)
+        run: >-
+          mvn package -P mysql -B -DskipTests
+          -DDB_URL="jdbc:mysql://127.0.0.1:3306/springbootxnj6l?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8"
+          -DDB_USERNAME=root
+          -DDB_PASSWORD=root123456
+          -f springbootxnj6l/pom.xml
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: springbootxnj6l-mysql
+          path: springbootxnj6l/target/springbootxnj6l.jar
+
+  # ==================== SQL Server Profile ====================
+  build-sqlserver:
+    name: Build & Smoke Test (SQL Server)
+    runs-on: ubuntu-latest
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourStrong@Passw0rd
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Create database
+        run: >-
+          docker exec ${{ job.services.sqlserver.id }}
+          /opt/mssql-tools/bin/sqlcmd
+          -S localhost -U sa -P "YourStrong@Passw0rd"
+          -Q "CREATE DATABASE springbootxnj6l"
+
+      - name: Compile (sqlserver profile)
+        run: mvn clean compile -P sqlserver -B -f springbootxnj6l/pom.xml
+
+      - name: Smoke test - contextLoads (sqlserver profile)
+        run: >-
+          mvn test -P sqlserver -B
+          -Dtest=SpringbootSchemaApplicationTests
+          -DDB_URL="jdbc:sqlserver://127.0.0.1:1433;DatabaseName=springbootxnj6l"
+          -DDB_USERNAME=sa
+          -DDB_PASSWORD="YourStrong@Passw0rd"
+          -f springbootxnj6l/pom.xml
+
+      - name: Package jar (sqlserver profile)
+        run: >-
+          mvn package -P sqlserver -B -DskipTests
+          -DDB_URL="jdbc:sqlserver://127.0.0.1:1433;DatabaseName=springbootxnj6l"
+          -DDB_USERNAME=sa
+          -DDB_PASSWORD="YourStrong@Passw0rd"
+          -f springbootxnj6l/pom.xml
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: springbootxnj6l-sqlserver
+          path: springbootxnj6l/target/springbootxnj6l.jar

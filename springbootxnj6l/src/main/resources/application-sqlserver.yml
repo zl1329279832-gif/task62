@@ -1,0 +1,11 @@
+# ============================================================
+# SQL Server 数据源配置
+# 激活方式：mvn clean package -P sqlserver
+# 环境变量覆盖：-DDB_URL=... -DDB_USERNAME=... -DDB_PASSWORD=...
+# ============================================================
+spring:
+    datasource:
+        driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+        url: @DB_URL@
+        username: @DB_USERNAME@
+        password: @DB_PASSWORD@

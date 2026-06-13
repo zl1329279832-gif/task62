@@ -1,0 +1,11 @@
+# ============================================================
+# MySQL 数据源配置
+# 激活方式：mvn clean package -P mysql
+# 环境变量覆盖：-DDB_URL=... -DDB_USERNAME=... -DDB_PASSWORD=...
+# ============================================================
+spring:
+    datasource:
+        driverClassName: com.mysql.cj.jdbc.Driver
+        url: @DB_URL@
+        username: @DB_USERNAME@
+        password: @DB_PASSWORD@

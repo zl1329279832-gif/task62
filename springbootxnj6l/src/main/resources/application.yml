@@ -7,16 +7,10 @@ server:
         context-path: /springbootxnj6l
 
 spring:
-    datasource:
-        driverClassName: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/springbootxnj6l?useUnicode=true&characterEncoding=utf-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8
-        username: root
-        password: 123456
-
-#        driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-#        url: jdbc:sqlserver://127.0.0.1:1433;DatabaseName=springbootxnj6l
-#        username: sa
-#        password: 123456
+    # datasource 配置已拆分到 application-mysql.yml / application-sqlserver.yml
+    # 打包时通过 Maven profile 激活：mvn clean package -P mysql 或 -P sqlserver
+    profiles:
+        active: @spring.profiles.active@
 
     servlet:
       multipart:
