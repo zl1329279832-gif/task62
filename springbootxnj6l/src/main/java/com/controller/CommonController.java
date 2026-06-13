@@ -31,6 +31,7 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.entity.ConfigEntity;
 import com.service.CommonService;
 import com.service.ConfigService;
+import com.service.KucunService;
 import com.utils.BaiduUtil;
 import com.utils.FileUtil;
 import com.utils.R;
@@ -43,9 +44,12 @@ public class CommonController{
 	private CommonService commonService;
 
     private static AipFace client = null;
-    
+
     @Autowired
-    private ConfigService configService;    
+    private ConfigService configService;
+
+    @Autowired
+    private KucunService kucunService;
 	/**
 	 * 获取table表中的column列表(联动接口)
 	 * @param table
@@ -93,6 +97,15 @@ public class CommonController{
 	 */
 	@RequestMapping("/sh/{tableName}")
 	public R sh(@PathVariable("tableName") String tableName, @RequestBody Map<String, Object> map) {
+		// 申领表走库存台账状态机，不直接改 sfsh
+		if ("wuzishenling".equals(tableName)) {
+			Long id = Long.valueOf(map.get("id").toString());
+			String sfsh = (String) map.get("sfsh");
+			String shhf = map.get("shhf") != null ? map.get("shhf").toString() : "";
+			// 前端传 "是" 表示通过，"否" 表示拒绝，映射到新状态机
+			String action = "是".equals(sfsh) ? "已批准" : "已拒绝";
+			return kucunService.shenhe(id, action, shhf);
+		}
 		map.put("table", tableName);
 		commonService.sh(map);
 		return R.ok();

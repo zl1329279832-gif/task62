@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.KucunDao">
+
+    <!-- 悲观锁查询，锁定物资行防止并发超发 -->
+    <select id="selectForUpdate" resultType="com.entity.WuzixinxiEntity">
+        SELECT * FROM wuzixinxi WHERE wuzimingcheng = #{wuzimingcheng} FOR UPDATE
+    </select>
+
+    <!-- 原子增减库存 -->
+    <update id="updateStock">
+        UPDATE wuzixinxi SET wuzishuliang = wuzishuliang + #{delta} WHERE wuzimingcheng = #{wuzimingcheng}
+    </update>
+
+    <!-- 低库存预警，按物资分类聚合 -->
+    <select id="lowStockAlert" resultType="java.util.Map">
+        SELECT wuzifenlei,
+               COUNT(*)                    AS totalCount,
+               GROUP_CONCAT(wuzimingcheng) AS items,
+               MIN(wuzishuliang)           AS minStock
+        FROM wuzixinxi
+        WHERE wuzishuliang &lt;= #{threshold}
+        GROUP BY wuzifenlei
+    </select>
+
+</mapper>

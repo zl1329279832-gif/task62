@@ -29,6 +29,7 @@ import com.entity.WuzishenlingEntity;
 import com.entity.view.WuzishenlingView;
 
 import com.service.WuzishenlingService;
+import com.service.KucunService;
 import com.service.TokenService;
 import com.utils.PageUtils;
 import com.utils.R;
@@ -49,6 +50,9 @@ import java.io.IOException;
 public class WuzishenlingController {
     @Autowired
     private WuzishenlingService wuzishenlingService;
+
+    @Autowired
+    private KucunService kucunService;
 
 
     
@@ -134,23 +138,23 @@ public class WuzishenlingController {
 
 
     /**
-     * 后端保存
+     * 后端保存（初始状态：待审）
      */
     @RequestMapping("/save")
     public R save(@RequestBody WuzishenlingEntity wuzishenling, HttpServletRequest request){
     	wuzishenling.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(wuzishenling);
+    	wuzishenling.setSfsh("待审");
         wuzishenlingService.insert(wuzishenling);
         return R.ok();
     }
-    
+
     /**
-     * 前端保存
+     * 前端保存（初始状态：待审）
      */
     @RequestMapping("/add")
     public R add(@RequestBody WuzishenlingEntity wuzishenling, HttpServletRequest request){
     	wuzishenling.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(wuzishenling);
+    	wuzishenling.setSfsh("待审");
         wuzishenlingService.insert(wuzishenling);
         return R.ok();
     }
@@ -174,6 +178,18 @@ public class WuzishenlingController {
     public R delete(@RequestBody Long[] ids){
         wuzishenlingService.deleteBatchIds(Arrays.asList(ids));
         return R.ok();
+    }
+
+    /**
+     * 申领审核（状态机：待审→已出库 / 待审→已拒绝）
+     * 批准后自动校验库存、扣减、生成出库记录
+     */
+    @RequestMapping("/shenhe")
+    public R shenhe(@RequestBody Map<String, Object> map) {
+        Long id = Long.valueOf(map.get("id").toString());
+        String action = (String) map.get("action");
+        String reply = map.get("reply") != null ? map.get("reply").toString() : "";
+        return kucunService.shenhe(id, action, reply);
     }
     
     /**

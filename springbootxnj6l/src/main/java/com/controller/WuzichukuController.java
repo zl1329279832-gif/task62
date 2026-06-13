@@ -29,6 +29,7 @@ import com.entity.WuzichukuEntity;
 import com.entity.view.WuzichukuView;
 
 import com.service.WuzichukuService;
+import com.service.KucunService;
 import com.service.TokenService;
 import com.utils.PageUtils;
 import com.utils.R;
@@ -49,6 +50,9 @@ import java.io.IOException;
 public class WuzichukuController {
     @Autowired
     private WuzichukuService wuzichukuService;
+
+    @Autowired
+    private KucunService kucunService;
 
 
     
@@ -126,25 +130,19 @@ public class WuzichukuController {
 
 
     /**
-     * 后端保存
+     * 后端保存（出库 + 库存校验扣减）
      */
     @RequestMapping("/save")
     public R save(@RequestBody WuzichukuEntity wuzichuku, HttpServletRequest request){
-    	wuzichuku.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(wuzichuku);
-        wuzichukuService.insert(wuzichuku);
-        return R.ok();
+        return kucunService.chuku(wuzichuku);
     }
-    
+
     /**
-     * 前端保存
+     * 前端保存（出库 + 库存校验扣减）
      */
     @RequestMapping("/add")
     public R add(@RequestBody WuzichukuEntity wuzichuku, HttpServletRequest request){
-    	wuzichuku.setId(new Date().getTime()+new Double(Math.floor(Math.random()*1000)).longValue());
-    	//ValidatorUtils.validateEntity(wuzichuku);
-        wuzichukuService.insert(wuzichuku);
-        return R.ok();
+        return kucunService.chuku(wuzichuku);
     }
 
     /**
@@ -294,6 +292,16 @@ public class WuzichukuController {
             }
         }
         return R.ok().put("data", result);
+    }
+
+    /**
+     * 低库存预警查询，按物资分类聚合
+     * @param threshold 库存预警阈值，默认 10
+     */
+    @RequestMapping("/lowstock")
+    public R lowStockAlert(@RequestParam(value = "threshold", defaultValue = "10") Integer threshold) {
+        List<Map<String, Object>> data = kucunService.lowStockAlert(threshold);
+        return R.ok().put("data", data);
     }
 
 }
